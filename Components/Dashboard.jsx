@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   StyleSheet,
   Text,
@@ -7,18 +7,17 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 
 function Dashboard() {
   const [data, setData] = useState(null);
   const [city, setCity] = useState('');
-  const [loading, setLoading] = useState(false); // Track loading state
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
-  // Function to get city from AsyncStorage
   async function getCity() {
     try {
-      let storedCity = await AsyncStorage.getItem('city');
+      const storedCity = await AsyncStorage.getItem('city');
       setCity(storedCity);
     } catch (error) {
       console.error('Error fetching city from AsyncStorage:', error);
@@ -27,17 +26,18 @@ function Dashboard() {
 
   async function fetchWeather(city) {
     try {
+      if (!city) return;
       setLoading(true);
-      let API_KEY = '3eb1dca52d3838ef8fdac702ead19922';
-      let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
-      let res = await fetch(url);
-      res = await res.json();
+      const API_KEY = '3eb1dca52d3838ef8fdac702ead19922';
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
+      const res = await fetch(url);
+      const json = await res.json();
 
-      if (res.weather) {
+      if (json.weather) {
         setData({
-          weather: res.weather,
-          city: res.name,
-          temperature: res.main.temp,
+          weather: json.weather,
+          city: json.name,
+          temperature: json.main.temp,
         });
       } else {
         setData(null);
@@ -59,41 +59,39 @@ function Dashboard() {
 
   return (
     <View style={styles.main}>
-      <View style={styles.container}>
-        <Text style={styles.containerText}>Weather Data</Text>
-        <Text style={styles.containerText}>{city || 'No city selected'}</Text>
+      <Text style={styles.heading}>🌦️ Weather Dashboard</Text>
 
-        <View>
-          {loading ? (
-            <ActivityIndicator size="large" color="#ffffff" />
-          ) : data ? (
-            <View>
-              <Text style={styles.white10}>City: {data.city}</Text>
-              <Text style={styles.white10}>
-                Temperature: {data.temperature}°C
+      <View style={styles.card}>
+        <Text style={styles.cityText}>{city || 'No city selected'}</Text>
+
+        {loading ? (
+          <ActivityIndicator size="large" color="#fff" style={{ marginTop: 10 }} />
+        ) : data ? (
+          <View style={styles.weatherContainer}>
+            <Text style={styles.infoText}>City: {data.city}</Text>
+            <Text style={styles.infoText}>Temp: {data.temperature}°C</Text>
+            {data.weather.map((e, index) => (
+              <Text key={index} style={styles.infoText}>
+                {e.main} - {e.description}
               </Text>
-              {data.weather.map(e => (
-                <Text key={e.main} style={styles.white10}>
-                  {e.main} - {e.description}
-                </Text>
-              ))}
-            </View>
-          ) : (
-            <Text>No data found</Text>
-          )}
-        </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.noDataText}>No weather data found.</Text>
+        )}
       </View>
 
       <View style={styles.navigationContainer}>
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Page1')}>
-          <Text style={styles.white10}>Add Details</Text>
+          <Text style={styles.buttonText}>➕ Add Details</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('SeeDetails')}>
-          <Text style={styles.white10}>See Details</Text>
+          <Text style={styles.buttonText}>📋 See Details</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -103,36 +101,63 @@ function Dashboard() {
 const styles = StyleSheet.create({
   main: {
     flex: 1,
+    backgroundColor: '#f0f4f7',
+    paddingHorizontal: 20,
+    paddingTop: 50,
   },
-  container: {
-    height: 300,
-    width: 300,
-    borderWidth: 1,
-    backgroundColor: 'blue',
-    margin: 30,
+  heading: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#003366',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: '#4a90e2',
+    padding: 20,
+    borderRadius: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  containerText: {
+  cityText: {
     fontSize: 20,
     color: 'white',
-    textAlign: 'center',
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
-  white10: {fontSize: 15, color: 'white'},
+  infoText: {
+    fontSize: 16,
+    color: '#fff',
+    marginVertical: 2,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#fff',
+    marginTop: 10,
+  },
+  weatherContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
   navigationContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '95%',
-    alignSelf: 'center',
+    marginTop: 40,
   },
   button: {
+    backgroundColor: '#003366',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
     width: '48%',
-    backgroundColor: 'blue',
-    paddingVertical: 10,
-    borderRadius: 5,
-    justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 
