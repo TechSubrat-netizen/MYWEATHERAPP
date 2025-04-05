@@ -1,15 +1,44 @@
-import { View,Text } from "react-native"
-import AsyncStorage from "@react-native-async-storage/async-storage"
+import {View, Text, StyleSheet} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useEffect, useState} from 'react';
 function SeeDetails() {
-    let city=AsyncStorage.getItem('city')
-    let name=AsyncStorage.getItem('name')
-  return (
-   <View>
-    <Text style={{fontSize:20}}>See Details Page</Text>
-    <Text style={{fontSize:20}}>{city}</Text>
-    <Text style={{fontSize:20}}>{name}</Text>
-   </View>
-  )
-}
+  const [city, setCity] = useState('');
+  const [name, setName] = useState('');
+  const [qrValue, setQRvalue] = useState('');
+  const fetchAllDetails = async () => {
+    setCity(await AsyncStorage.getItem('city'));
+    setName(await AsyncStorage.getItem('name'));
+    setQRvalue(await AsyncStorage.getItem('qrvalue'));
+  };
 
-export default SeeDetails
+  useEffect(() => {
+    fetchAllDetails();
+  }, []);
+
+  return (
+    <View style={styles.textView}>
+      <Text style={styles.text}>
+        QR Code Value: <Text style={styles.innerText}>{qrValue}</Text>
+      </Text>
+      <Text style={styles.text}>
+        City: <Text style={styles.innerText}>{city}</Text>
+      </Text>
+      <Text style={styles.text}>
+        Name:<Text style={styles.innerText}>{name}</Text>
+      </Text>
+    </View>
+  );
+}
+const styles = StyleSheet.create({
+  textView: {width: '95%', alignSelf: 'center', gap: 5},
+  text: {
+    color: 'black',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  innerText: {
+    color: 'gray',
+    fontSize: 13,
+  },
+});
+export default SeeDetails;
